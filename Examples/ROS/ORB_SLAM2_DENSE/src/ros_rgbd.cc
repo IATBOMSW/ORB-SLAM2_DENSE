@@ -23,17 +23,19 @@
 #include<algorithm>
 #include<fstream>
 #include<chrono>
+#include<thread>
 
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <cv_bridge/cv_bridge.h>
+#include <tf/transform_listener.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
 #include<opencv2/core/core.hpp>
 
-#include"System.h"
+#include "System.h"
 #include "ORB_SLAM2_DENSE/utils/message_utils.h"
 #include "ORB_SLAM2_DENSE/utils/tic_toc.h"
 
@@ -57,7 +59,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "RGBD");
     ros::start();
-    ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug);
+//    ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug);
     ros::Time::init();
 
     if(argc != 3)
@@ -69,6 +71,9 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
     ros::NodeHandle private_nh("~");
+    tf::TransformListener listener;
+    
+    // get parameters
     bool use_rviz;
     private_nh.param("use_rviz", use_rviz, true);
 
@@ -76,7 +81,7 @@ int main(int argc, char **argv)
     ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::RGBD,!use_rviz);
 
     // publish necessary message of SLAM
-    ORB_SLAM2_DENSE::MessageUtils msgUtils(&SLAM);
+    ORB_SLAM2_DENSE::MessageUtils msgUtils(listener, &SLAM);
 
     ImageGrabber igb(&SLAM, &msgUtils);
 
@@ -93,6 +98,8 @@ int main(int argc, char **argv)
 
     // Save camera trajectory
     SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
+    
+    SLAM.save();
 
     ros::shutdown();
 
@@ -109,6 +116,8 @@ mpSLAM(pSLAM), mpMsgUtils_(pMsgUtils)
 
 void ImageGrabber::GrabRGBD(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD)
 {
+    ROS_DEBUG("---");
+    
     ORB_SLAM2_DENSE::TicToc tic_toc;
 
     // Copy the ros image message to cv::Mat.
@@ -135,20 +144,20 @@ void ImageGrabber::GrabRGBD(const sensor_msgs::ImageConstPtr& msgRGB,const senso
     }
     double cv_bridge_time = tic_toc.toc();
 
-//    while(mpSLAM->mpPointCloudMapping->loopbusy || mpSLAM->mpPointCloudMapping->cloudbusy)
+//    while(mpSLAM->mpPointCloudMapping->mbLoopBusy || mpSLAM->mpPointCloudMapping->cloudbusy)
 //    {
 //        cout<<"";
 //    }
 
     mpSLAM->TrackRGBD(cv_ptrRGB->image,cv_ptrD->image,cv_ptrRGB->header.stamp.toSec());
     double tracking_time = tic_toc.toc();
+    
+    mpMsgUtils_->publishOdometry();
+    mpMsgUtils_->publishFrame();
+    mpMsgUtils_->publishPointCloud();
 
-    mpMsgUtils_->PublishOdometry();
-    mpMsgUtils_->PublishFrame();
-    mpMsgUtils_->PublishPointCloud();
     double total_time = tic_toc.toc();
-
-    ROS_DEBUG("-------------------------");
+    
     ROS_DEBUG("TIME NOW: %f", ros::Time::now().toSec());
     ROS_DEBUG("CvBridge time cost: %f s[%f%%]", cv_bridge_time, (cv_bridge_time/total_time)*100);
     ROS_DEBUG("Tracking time cost: %f s[%f%%]", tracking_time-cv_bridge_time, ((tracking_time-cv_bridge_time)/total_time)*100);

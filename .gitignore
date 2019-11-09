@@ -212,6 +212,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# vscode
+.vscode/
+
 # jet brain
 .idea/
 cmake-build-debug/

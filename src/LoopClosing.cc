@@ -653,7 +653,7 @@ void LoopClosing::ResetIfRequested()
 void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
 {
     cout << "Starting Global Bundle Adjustment" << endl;
-    mpPointCloudMapping->loopbusy = true;
+    mpPointCloudMapping->mbLoopBusy = true;
     int idx =  mnFullBAIdx;
     Optimizer::GlobalBundleAdjustemnt(mpMap,10,&mbStopGBA,nLoopKF,false);
 
@@ -749,10 +749,10 @@ void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
             mpLocalMapper->Release();
             loopcount++;
             while(loopcount!=mpPointCloudMapping->loopcount)
-                      mpPointCloudMapping->updatecloud();
+                mpPointCloudMapping->updateCloseLoopCloud();
              cout<<"mpPointCloudMapping->loopcount="<<mpPointCloudMapping->loopcount<<endl;
             cout << "Map updated!" << endl;
-            //mpPointCloudMapping->loopbusy = true;
+            //mpPointCloudMapping->mbLoopBusy = true;
         }
 
         mbFinishedGBA = true;

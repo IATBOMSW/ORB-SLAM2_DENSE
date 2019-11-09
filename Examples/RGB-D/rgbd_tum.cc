@@ -117,12 +117,12 @@ int main(int argc, char **argv)
         if(ttrack<T)
             usleep((T-ttrack)*1e6);
     }
-    while(SLAM.mpPointCloudMapping->loopbusy || SLAM.mpPointCloudMapping->cloudbusy)
+    while(SLAM.mpPointCloudMapping->mbLoopBusy || SLAM.mpPointCloudMapping->mbCloudBusy)
     {
         cout<<"";
     }
     // Tracking time statistics
-    SLAM.mpPointCloudMapping->bStop = true;
+    SLAM.mpPointCloudMapping->mbStop = true;
     sort(vTimesTrack.begin(),vTimesTrack.end());
     float totaltime = 0;
     for(int ni=0; ni<nImages; ni++)

@@ -68,6 +68,22 @@ Viewer.ViewpointY: -0.7
 Viewer.ViewpointZ: -1.8
 Viewer.ViewpointF: 500
 
-PointCloudMapping.Resolution: 0.05
-meank: 50
-thresh: 2.0
+# PointCloud Parameters
+PointCloudMapping:
+  Resolution: 0.05
+  Tbc:
+    x: 0.0
+    y: 0.0
+    z: 0.4
+    roll: -1.705
+    pitch: 0.0
+    yaw: -1.57
+  StatisticFilter:
+    MeanK: 50
+    Thres: 2.0
+  PlaneSegmentation:
+    UsePlaneSegmentation: 1
+    SegmentPerFrame: 0
+    PlaneDistThres: 0.15
+    FramePlaneDistThres: 0.5
+

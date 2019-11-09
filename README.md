@@ -2,11 +2,13 @@
 
 基于[ORB_SLAM2_RGBD_DENSE_MAP](https://github.com/tiantiandabaojian/ORB-SLAM2_RGBD_DENSE_MAP)点云地图构建工作修改, 感谢各位大佬的分享, 还在完善中...
 
-![](./misc/octomap.gif)
+![demo](./misc/octomap_flat.gif)
 
 ## 1. 更新记录
 
-- v0.1,0-2019/11/01: 上传ORB-SLAM2 ROS版稠密重建工程, catkin编译, 发布必要的消息
+- v0.2.0-2019/11/09: 添加对平面移动机器人建图的支持, 分割并去除地面, 构建栅格地图
+
+- v0.1.0-2019/11/01: 上传ORB-SLAM2 ROS版稠密重建工程, catkin编译, 发布必要的消息
 
 ## 2. 添加功能
 
@@ -14,28 +16,36 @@
 
 - 发布ORB-SLAM2必要的消息, 重建点云地图, 可以使用[octomap_server](http://wiki.ros.org/octomap_server)转换成八叉树地图
 
+- 添加了对平面移动机器人建图的支持, 使用[octomap_server](http://wiki.ros.org/octomap_server)将八叉树地图投影为栅格地图
+
+- 添加地面分割去除的功能(仅平面移动机器人, 且视角中能看到大部分地面有效), 允许建图时每次对整个地图地面分割, 或者每一个关键帧都做地面分割(推荐), 利用地面法向量对地图坐标系进行校正
+
 ## 3. 使用
 
 将工程放在ROS工作空间中
+
 ```bash
 cd ~/catkin_ws/src/ORB-SLAM2_DENSE/
 ```
 
 添加词典txt文件到`./Vocabulary`, 编译ORB-SLAM2库:
+
 ```bash
 chmod +x build.sh
 ./build.sh
 ```
 
-编辑ROS功能包:
+编译ROS功能包:
+
 ```bash
 cd ~/catkin_ws/
 catkin_make
 ```
 
 修改launch文件中涉及的路径, 运行launch文件:
+
 ```bash
-roslaunch orb_slam2_dense rgbd_launch.launch
+roslaunch orb_slam2_dense tum_pioneer.launch
 ```
 
 ## 4. 注意事项
@@ -44,7 +54,9 @@ roslaunch orb_slam2_dense rgbd_launch.launch
 
 - 需要根据自己的环境修改`CMakeList.txt`, 比如PCL库的路径: [ORB-SLAM2中](./CMakeLists.txt#L48), 和[ROS功能包中](./Examples/ROS/ORB_SLAM2_DENSE/CMakeLists.txt#L64)
 
-- 编译后`orb_slam2_dense`功能包因为位置的原因无法找到, 但是命令是可以正常运行的
+- 编译后`orb_slam2_dense`功能包因为路径的原因无法找到, 但是命令是可以正常运行的
+
+- 如果需要启用平面分割功能, 在yaml配置文件中`PointCloudMapping::PlaneSegmentation::UsePlaneSegmentation`请设置为`1`, 如果要启用逐关键帧地面分割去除的功能, 在启用地面分割的基础上, `PointCloudMapping::PlaneSegmentation::SegmentPerFrame`请设置为`1`
 
 ## 5. 存在问题
 

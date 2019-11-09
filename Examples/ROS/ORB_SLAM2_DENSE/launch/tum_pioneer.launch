@@ -1,0 +1,53 @@
+<launch>
+    <!-- dataset path args -->
+    <arg name="setting_path" doc="Path of SLAM and camera config .yaml file"
+         default="/home/yonghui/catkin_ws/src/ORB-SLAM2_DENSE/Examples/ROS/ORB_SLAM2_DENSE/params/TUM2.yaml" />
+    <arg name="dataset_path" doc="Path of rosbag dataset, if `use_sim is enabled`"
+         default="/home/yonghui/Datasets/TUM/rgbd_dataset_freiburg2_pioneer_slam/rgbd_dataset_freiburg2_pioneer_slam.bag" />
+         <!-- default="/home/yonghui/Datasets/TUM/rgbd_dataset_freiburg3_long_office_household/rgbd_dataset_freiburg3_long_office_household.bag" /> -->
+     <!-- use node flag args -->
+    <arg name="use_sim" default="true"/>
+    <arg name="use_rviz" default="true" />
+    <!-- broadcast frame id args -->
+    <arg name="map_frame" default="map" />
+    <arg name="odom_frame" default="odom" />
+    <arg name="footprint_frame" default="camera_footprint" />
+    <arg name="optical_frame" default="camera_optical" />
+
+
+     <!-- rosbag node -->
+    <group if="$(arg use_sim)" >
+<!--        <param name="/use_sim_time" value="true" />-->
+        <node pkg="rosbag" type="play" name="playbag" args="$(arg dataset_path)" />
+    </group>
+
+     <group if="$(arg use_rviz)" >
+        <node pkg="rviz" type="rviz" name="rviz" args="-d $(find orb_slam2_dense)/rviz/rgbd.rviz" />
+    </group>
+
+    <!-- ORB-SLAM2_DENSE -->
+    <include file="$(find orb_slam2_dense)/launch/rgbd_launch.launch" >
+        <arg name="setting_path" value="$(arg setting_path)" />
+        <arg name="use_rviz" value="$(arg use_rviz)" />
+        <arg name="map_frame" value="$(arg map_frame)" />
+        <arg name="odom_frame" value="$(arg odom_frame)" />
+        <arg name="footprint_frame" value="$(arg footprint_frame)" />
+        <arg name="optical_frame" value="$(arg optical_frame)" />
+    </include>
+
+     <!-- octomap server -->
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_server_node" output="screen">
+        <remap from="cloud_in" to="/cloud2" />
+        <param name="frame_id" value="$(arg map_frame)" />
+        <param name="base_frame_id" value="$(arg footprint_frame)" />
+        <param name="pointcloud_min_z" value="0.2" />
+        <param name="pointcloud_max_z" value="2" />
+    </node>
+
+    <!-- static tf publisher -->
+    <!-- tx, ty, tz, rz, ry, rx -->
+    <!-- tx, ty, tz, qx, qy, qz, qw -->
+    <node pkg="tf" type="static_transform_publisher" name="footprint2optical"
+          args="0 0 0.6 -1.57 0 -1.705 $(arg footprint_frame) $(arg optical_frame) 100" />
+
+</launch>

@@ -1,48 +1,41 @@
 <launch>
-    <!-- dataset path -->
+    <!-- dataset path args -->
     <arg name="voc_path" doc="Path of DBoW dictionary"
          default="/home/yonghui/catkin_ws/src/ORB-SLAM2_DENSE/Vocabulary/ORBvoc.bin" />
     <arg name="setting_path" doc="Path of SLAM and camera config .yaml file"
-         default="/home/yonghui/catkin_ws/src/ORB-SLAM2_DENSE/Examples/ROS/ORB_SLAM2_DENSE/params/TUM1.yaml" />
-    <arg name="dataset_path" doc="Path of rosbag dataset, if `use_sim is enabled`"
-         default="/home/yonghui/Datasets/TUM/rgbd_dataset_freiburg1_desk/rgbd_dataset_freiburg1_desk.bag" />
-    <!-- use node flag -->
-    <arg name="use_sim" default="true"/>
-    <arg name="use_rviz" default="true" />
-    <!-- orb_slam2_dense parameters -->
+         default="/home/yonghui/catkin_ws/src/ORB-SLAM2_DENSE/Examples/ROS/ORB_SLAM2_DENSE/params/TUM2.yaml" />
+    <!-- orb_slam2_dense parameters args -->
     <arg name="use_odom_pub" default="true"/>
+    <arg name="use_rviz" default="true" />
     <arg name="use_tf" default="true" />
     <arg name="use_frame_pub" default="true" />
     <arg name="use_pcl_pub" default="true" />
-    <arg name="global_frame" default="odom" />
-    <arg name="base_frame" default="base_link" />
+    <!-- broadcast frame id args -->
+    <arg name="map_frame" default="map" />
+    <arg name="odom_frame" default="odom" />
+    <arg name="footprint_frame" default="camera_footprint" />
+    <arg name="optical_frame" default="camera_optical" />
 
-    <!-- rosbag -->
-    <group if="$(arg use_sim)" >
-<!--        <param name="/use_sim_time" value="true" />-->
-        <node pkg="rosbag" type="play" name="playbag" args="$(arg dataset_path)" />
-    </group>
-
-    <group if="$(arg use_rviz)" >
-        <node pkg="rviz" type="rviz" name="rviz" args="-d $(find orb_slam2_dense)/rviz/rgbd.rviz" />
-    </group>
 
     <!-- orb_slam_dense -->
     <node pkg="orb_slam2_dense" type="RGBD" name="RGBD" args="$(arg voc_path) $(arg setting_path)" output="screen" >
-<!--          launch-prefix="xterm -e gdb -ex gdb &#45;&#45;args ">-->
+          <!-- launch-prefix="xterm -e gdb -->
+          <!-- -d /home/yonghui/catkin_ws/src/ORB-SLAM2_DENSE/ -->
+          <!-- -ex 'break src/pointcloudmapping.cc:603' -->
+          <!-- -ex run -->
+          <!-- -/-args"> -->
+        <!-- orb_slam2_dense parameters -->
         <param name="use_odom_pub" type="bool" value="$(arg use_odom_pub)" />
         <param name="use_rviz" type="bool" value="$(arg use_rviz)" />
         <param name="use_tf" type="bool" value="$(arg use_tf)" />
         <param name="use_frame_pub" type="bool" value="$(arg use_frame_pub)" />
         <param name="use_pcl_pub" type="bool" value="$(arg use_pcl_pub)" />
-        <param name="global_frame" type="str" value="$(arg global_frame)" />
-        <param name="base_frame" type="str" value="($arg base_frame)" />
+        <!-- frame_id parameters -->
+        <param name="map_frame" type="str" value="$(arg map_frame)" />
+        <param name="odom_frame" type="str" value="$(arg odom_frame)" />
+        <param name="footprint_frame" type="str" value="$(arg footprint_frame)" />
+        <param name="optical_frame" type="str" value="$(arg optical_frame)" />
     </node>
 
-    <!-- octomap server -->
-    <node pkg="octomap_server" type="octomap_server_node" name="octomap_server_node" output="screen">
-        <remap from="cloud_in" to="/cloud2" />
-        <param name="frame_id" value="$(arg global_frame)" />
-        <param name="base_frame_id" value="$(arg base_frame)" />
-    </node>
+
 </launch>
