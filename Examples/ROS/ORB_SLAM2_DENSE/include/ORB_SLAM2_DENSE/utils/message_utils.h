@@ -14,7 +14,12 @@
 
 // ROS
 #include <ros/ros.h>
+#include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
+
+// Eigen
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 // STL
 #include <string>
@@ -35,31 +40,53 @@ namespace ORB_SLAM2_DENSE
     class MessageUtils
     {
     public:
-        MessageUtils(ORB_SLAM2::System *pSystem);
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+        
+        MessageUtils(tf::TransformListener &listener, ORB_SLAM2::System *pSystem);
 
-        void PublishOdometry();
+        void publishOdometry();
 
-        void PublishFrame();
+        void publishFrame();
 
-        void PublishPointCloud();
+        void publishPointCloud();
 
     protected:
-        // pub and sub
+        bool getTransformedPose(tf::Stamped<tf::Transform> &output_pose, const string &target_frame, const double &timeout=1.0);
+        
+        bool getTransformedPose(Eigen::Matrix4d &output_mat, const string &target_frame, const string &source_frame, const double &timeout=1.0);
+
+//        bool planeSACSegmentation(PointCloudMapping::PointCloud::Ptr &pcl_map,
+//                                  PointCloudMapping::PointCloud::Ptr &pcl_plane, Eigen::Vector4d &plane_coeffs);
+        
+        // node handler
         ros::NodeHandle nh_;
         ros::NodeHandle private_nh_;
-        tf::TransformBroadcaster transform_;
+
+        // tf
+        tf::TransformListener &listener_;
+        tf::TransformBroadcaster broadcaster_;
+
+        // pub and sub
         ros::Publisher odom_pub_;
         ros::Publisher frame_pub_;
         ros::Publisher pcl_pub_;
         ros::Publisher pcl2_pub_;
 
-        // paramters
+        // parameters
         bool use_odom_pub_;
         bool use_tf_;
         bool use_frame_pub_;
         bool use_pcl_pub_;
-        std::string global_frame_;
-        std::string base_frame_;
+//        bool use_plane_segment_;
+//        double min_z_;
+//        double max_z_;
+//        double plane_dist_thres_;
+
+        // frame id
+        std::string map_frame_;
+        std::string odom_frame_;
+        std::string footprint_frame_;
+        std::string optical_frame_;
 
         // ORB_SLAM2 pointer
         ORB_SLAM2::System *mpSystem_;
@@ -69,7 +96,10 @@ namespace ORB_SLAM2_DENSE
         std::shared_ptr<PointCloudMapping> mpPclMapper_;
 
         // point cloud map
-        PointCloudMapping::PointCloud pcl_map_;
+        PointCloudMapping::PointCloud::Ptr pcl_map_;
+        PointCloudMapping::PointCloud::Ptr pcl_plane_;
+        Eigen::Vector4d plane_coeffs_;
+        Eigen::Vector4d last_plane_coeffs_;
     };
 }
 

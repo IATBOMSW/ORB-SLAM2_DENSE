@@ -64,11 +64,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
        cerr << "Failed to open settings file at: " << strSettingsFile << endl;
        exit(-1);
     }
-
-    // for point cloud resolution
-    float resolution = fsSettings["PointCloudMapping.Resolution"];
-    float meank = fsSettings["meank"];
-    float thresh = fsSettings["thresh"];
+    
     //Load ORB Vocabulary
     cout << endl << "Loading ORB Vocabulary. This could take a while..." << endl;
 
@@ -98,7 +94,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mpMapDrawer = new MapDrawer(mpMap, strSettingsFile);
 
     // Initialize pointcloud mapping
-    mpPointCloudMapping = make_shared<PointCloudMapping>( resolution,meank,thresh );
+    mpPointCloudMapping = make_shared<PointCloudMapping>( strSettingsFile, bUseViewer );
 
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
