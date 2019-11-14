@@ -94,7 +94,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mpMapDrawer = new MapDrawer(mpMap, strSettingsFile);
 
     // Initialize pointcloud mapping
-    mpPointCloudMapping = make_shared<PointCloudMapping>( strSettingsFile, bUseViewer );
+    // mpPointCloudMapping = make_shared<PointCloudMapping>( strSettingsFile, bUseViewer );
+    mpPointCloudMapping = std::allocate_shared<PointCloudMapping>(Eigen::aligned_allocator<PointCloudMapping>(), strSettingsFile, bUseViewer);
 
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
