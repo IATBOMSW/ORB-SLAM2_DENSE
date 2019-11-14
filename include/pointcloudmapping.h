@@ -41,6 +41,8 @@ using namespace ORB_SLAM2;
 class PointCloudMapping
 {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     typedef pcl::PointXYZRGBA PointT;
     typedef pcl::PointCloud<PointT> PointCloud;
     
